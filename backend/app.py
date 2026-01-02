@@ -93,7 +93,7 @@ def create_token():
         login_successful = bcrypt.checkpw(password.encode('utf-8'), user.password_hash)
         if login_successful:
             token = create_access_token(identity=username)
-            return {username: token}
+            return {"token": token}
 
     return {"Error": "Incorrect username or password"}
    

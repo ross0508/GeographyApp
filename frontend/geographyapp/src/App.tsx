@@ -1,31 +1,75 @@
 import { useState } from "react";
 import "./App.css";
+import axios from "axios";
+import Cookies from "universal-cookie";
 
 function App() {
+  const cookies = new Cookies();
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Simple validation (you can add more complex validation here)
-    if (!username || !password) {
-      setError("Please fill out both fields");
-      return;
+  const handleLogin = async () => {
+    event.preventDefault();
+    try {
+      const response = await axios({
+        method: "POST",
+        url: `http://127.0.0.1:5000/login`,
+        data: {
+          username: username,
+          password: password,
+        },
+      });
+      cookies.set("jwt_authorization", response.data["token"]);
+      return response.data;
+    } catch (error) {
+      console.error("Error logging in", error);
     }
+  };
 
-    // Clear error if validation is passed
-    setError("");
+  const handleRegister = async () => {
+    event.preventDefault();
+    try {
+      const response = await axios({
+        method: "POST",
+        url: `http://localhost:5000/register`,
+        data: {
+          username: username,
+          password: password,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error signing up", error);
+    }
+  };
 
-    // Normally, you would send this data to an API or server here
-    alert("Logged in successfully!");
+  const testRequest = async () => {
+    event.preventDefault();
+    const jwt_authorization = cookies.get("jwt_authorization");
+    const auth_header = "Bearer " + jwt_authorization;
+    try {
+      const response = await axios({
+        method: "POST",
+        url: `http://localhost:5000/test`,
+        headers: {
+          Authorization: auth_header,
+        },
+        data: {
+          username: username,
+          password: password,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error signing up", error);
+    }
   };
 
   return (
     <>
       <div className="card">
-        <form onSubmit={handleSubmit} className="login-form">
+        <form className="login-form">
           <div className="form-group">
             <label htmlFor="username">Username</label>
             <input
@@ -47,12 +91,13 @@ function App() {
               placeholder="Enter your password"
             />
           </div>
-
-          {error && <div className="error">{error}</div>}
-
-          <button type="submit" className="login-button">
+          <button onClick={() => handleLogin()} className="login-button">
             Login
           </button>
+          <button onClick={() => handleRegister()} className="login-button">
+            Register
+          </button>
+          <button onClick={() => testRequest()}>Test Request</button>
         </form>
       </div>
     </>
