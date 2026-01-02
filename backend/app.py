@@ -6,9 +6,15 @@ import json
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token, JWTManager, get_jwt_identity, jwt_required
 import bcrypt
+import os
+from dotenv import load_dotenv
+
 
 app = Flask(__name__)
-app.config["JWT_SECRET_KEY"] = "sleepyjoe"
+
+load_dotenv()
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
 
 CORS(app)
 
