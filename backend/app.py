@@ -167,3 +167,24 @@ def getNewFacts(length):
                    
 
     return jsonify(facts_list)
+
+@app.get("/facts/known/<length>")
+@jwt_required()
+def getKnownFacts(length):
+    length = int(length)
+
+    username = get_jwt_identity()
+    user = session.query(User).filter_by(username=username).one_or_none()
+
+    user_facts = session.query(UserFact).filter(UserFact.user_id == user.user_id, UserFact.exp == 100).limit(length).all()
+
+    userfact_ids = [user_fact.fact_id for user_fact in user_facts]
+
+    facts = session.query(Fact).filter(Fact.fact_id.in_(userfact_ids)).order_by(func.random()).all()
+
+    facts_list = [{"fact_id": fact.fact_id, "category": fact.category, 
+                   "country_name": fact.country_name, "img_url": fact.img_url, 
+                   "answer": fact.answer, "difficulty": fact.difficulty,
+                   "continent": fact.continent} for fact in facts]
+    
+    return jsonify(facts_list)
