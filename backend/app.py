@@ -138,7 +138,7 @@ def addExp():
     return {"200": "Exp added successfully"}
 
 
-@app.get("/facts/known/<length>")
+@app.get("/facts/new/<length>")
 @jwt_required()
 def getNewFacts(length):
     length = int(length)
@@ -153,7 +153,7 @@ def getNewFacts(length):
 
     # Get Not-In-Progress Facts
     if len(user_facts) < length:
-        additional_facts = session.query(Fact).filter(Fact.fact_id.notin_(in_progress_fact_ids)).limit(length - len(user_facts)).all()
+        additional_facts = session.query(Fact).outerjoin(UserFact).filter(Fact.fact_id.notin_(in_progress_fact_ids), (UserFact.exp != 100) | (UserFact.exp == None)).order_by(Fact.difficulty).limit(length - len(user_facts)).all()
         user_facts.extend(additional_facts)
 
     user_fact_ids = [user_fact.fact_id for user_fact in user_facts]
@@ -162,6 +162,8 @@ def getNewFacts(length):
 
     facts_list = [{"fact_id": fact.fact_id, "category": fact.category, 
                    "country_name": fact.country_name, "img_url": fact.img_url, 
-                   "answer": fact.answer} for fact in facts]
+                   "answer": fact.answer, "difficulty": fact.difficulty,
+                   "continent": fact.continent} for fact in facts]
+                   
 
     return jsonify(facts_list)
