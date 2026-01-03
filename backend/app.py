@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from sqlalchemy import Column, Integer, Table, Column, MetaData, String, Double, ForeignKey, LargeBinary
+from sqlalchemy import Column, Integer, Table, Column, MetaData, String, Double, ForeignKey, LargeBinary, func
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from engine import engine
 import json
@@ -109,14 +109,13 @@ def test():
 def addExp():
     username = get_jwt_identity()
     user = session.query(User).filter_by(username=username).one_or_none()
-    user_id = user.user_id
     fact_id = request.json.get('fact_id')
 
-    user_fact = session.query(UserFact).filter_by(user_id=user_id, fact_id=fact_id).one_or_none()
-    user = session.query(User).filter_by(user_id=user_id).one_or_none()
+    user_fact = session.query(UserFact).filter_by(user_id=user.user_id, fact_id=fact_id).one_or_none()
+    user = session.query(User).filter_by(user_id=user.user_id).one_or_none()
 
     if not user_fact:
-        user_fact = UserFact(user_id=user_id, fact_id=fact_id, exp=0)
+        user_fact = UserFact(user_id=user.user_id, fact_id=fact_id, exp=0)
         session.add(user_fact)
 
     user_fact.exp = user_fact.exp + 20
@@ -137,3 +136,20 @@ def addExp():
     session.commit()
 
     return {"200": "Exp added successfully"}
+
+
+@app.get("/facts/<length>")
+@jwt_required()
+def getTest(length):
+    length = int(length)
+
+    username = get_jwt_identity()
+    user = session.query(User).filter_by(username=username).one_or_none()
+
+    facts = session.query(Fact).order_by(func.random()).limit(length).all()
+
+    facts_list = [{"fact_id": fact.fact_id, "category": fact.category, 
+                   "country_name": fact.country_name, "img_url": fact.img_url, 
+                   "answer": fact.answer} for fact in facts]
+
+    return jsonify(facts_list)
