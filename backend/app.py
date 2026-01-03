@@ -138,15 +138,26 @@ def addExp():
     return {"200": "Exp added successfully"}
 
 
-@app.get("/facts/<length>")
+@app.get("/facts/known/<length>")
 @jwt_required()
-def getTest(length):
+def getNewFacts(length):
     length = int(length)
 
     username = get_jwt_identity()
     user = session.query(User).filter_by(username=username).one_or_none()
 
-    facts = session.query(Fact).order_by(func.random()).limit(length).all()
+    # Get In Progress Facts
+    user_facts = session.query(UserFact).filter(UserFact.user_id == user.user_id, UserFact.exp < 100).limit(length).all()
+
+    in_progress_fact_ids = [user_fact.fact_id for user_fact in user_facts]
+
+    if len(user_facts) < length:
+        additional_facts = session.query(Fact).filter(Fact.fact_id.notin_(in_progress_fact_ids)).limit(length - len(user_facts)).all()
+        user_facts.extend(additional_facts)
+
+    user_fact_ids = [user_fact.fact_id for user_fact in user_facts]
+
+    facts = session.query(Fact).filter(Fact.fact_id.in_(user_fact_ids)).order_by(func.random()).all()
 
     facts_list = [{"fact_id": fact.fact_id, "category": fact.category, 
                    "country_name": fact.country_name, "img_url": fact.img_url, 
