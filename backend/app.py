@@ -31,6 +31,7 @@ class UserFact(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.user_id'))
     fact_id = Column(Integer, ForeignKey('facts.fact_id'))
+    exp = Column(Integer)
     
 
 class User(Base):
@@ -52,8 +53,8 @@ class Fact(Base):
     fact_id = Column(Integer, primary_key=True)
     category = Column(String)
     country_name = Column(String)
-    Img_url = Column(String)
-    Answer = Column(String)
+    img_url = Column(String)
+    answer = Column(String)
 
     users = relationship('User', secondary="user_fact", back_populates="facts")
 
@@ -102,3 +103,35 @@ def create_token():
 @jwt_required()
 def test():
     return {"bruh": "bruvvvvvv"}
+
+@app.put("/users/<user_id>/exp")
+@jwt_required()
+def addExp(user_id):
+    user_id = user_id
+    fact_id = request.json.get('fact_id')
+
+    user_fact = session.query(UserFact).filter_by(user_id=user_id, fact_id=fact_id).one_or_none()
+    user = session.query(User).filter_by(user_id=user_id).one_or_none()
+
+    if not user_fact:
+        user_fact = UserFact(user_id=user_id, fact_id=fact_id, exp=0)
+        session.add(user_fact)
+
+    user_fact.exp = user_fact.exp + 20
+
+    if user_fact.exp >= 100:
+        user_fact.exp = 100
+    else:
+        user.exp = user.exp + 20
+
+        if user.exp >= user.exp_to_next_level:
+            user.level = user.level + 1
+            user.exp = user.exp - user.exp_to_next_level
+            user.exp_to_next_level = user.exp_to_next_level * 1.2
+
+    
+    
+
+    session.commit()
+
+    return {"200": "Exp added successfully"}
