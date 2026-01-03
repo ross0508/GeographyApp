@@ -53,8 +53,10 @@ class Fact(Base):
     fact_id = Column(Integer, primary_key=True)
     category = Column(String)
     country_name = Column(String)
+    continent = Column(String)
     img_url = Column(String)
     answer = Column(String)
+    difficulty = Column(Integer)
 
     users = relationship('User', secondary="user_fact", back_populates="facts")
 
@@ -64,6 +66,7 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
 session = Session()
+
 
 @app.post("/register")
 def create_account():
@@ -130,9 +133,6 @@ def addExp():
             user.exp = user.exp - user.exp_to_next_level
             user.exp_to_next_level = user.exp_to_next_level * 1.2
 
-    
-    
-
     session.commit()
 
     return {"200": "Exp added successfully"}
@@ -146,11 +146,12 @@ def getNewFacts(length):
     username = get_jwt_identity()
     user = session.query(User).filter_by(username=username).one_or_none()
 
-    # Get In Progress Facts
+    # Get In-Progress Facts
     user_facts = session.query(UserFact).filter(UserFact.user_id == user.user_id, UserFact.exp < 100).limit(length).all()
 
     in_progress_fact_ids = [user_fact.fact_id for user_fact in user_facts]
 
+    # Get Not-In-Progress Facts
     if len(user_facts) < length:
         additional_facts = session.query(Fact).filter(Fact.fact_id.notin_(in_progress_fact_ids)).limit(length - len(user_facts)).all()
         user_facts.extend(additional_facts)
