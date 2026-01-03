@@ -104,10 +104,12 @@ def create_token():
 def test():
     return {"bruh": "bruvvvvvv"}
 
-@app.put("/users/<user_id>/exp")
+@app.put("/users/exp")
 @jwt_required()
-def addExp(user_id):
-    user_id = user_id
+def addExp():
+    username = get_jwt_identity()
+    user = session.query(User).filter_by(username=username).one_or_none()
+    user_id = user.user_id
     fact_id = request.json.get('fact_id')
 
     user_fact = session.query(UserFact).filter_by(user_id=user_id, fact_id=fact_id).one_or_none()
