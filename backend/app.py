@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from sqlalchemy import Column, Integer, Table, Column, MetaData, String, Double, ForeignKey, LargeBinary, func
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from engine import engine
@@ -12,9 +12,13 @@ from dotenv import load_dotenv
 
 app = Flask(__name__)
 
+
 load_dotenv()
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
+
+IMAGE_FOLDER = os.getenv("IMAGE_FOLDER")
+app.config['UPLOAD_FOLDER'] = IMAGE_FOLDER
 
 CORS(app)
 
@@ -195,3 +199,8 @@ def getKnownFacts(length):
                    "continent": fact.continent} for fact in facts]
     
     return jsonify(facts_list)
+
+
+@app.route('/img/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)

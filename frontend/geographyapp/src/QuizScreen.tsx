@@ -9,6 +9,7 @@ export default function QuizScreen({ setQuizState, quizMode }) {
   const [quizData, setQuizData] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
+  const [images, setImages] = useState({});
 
   const getQuizData = async () => {
     const jwt_authorization = cookies.get("jwt_authorization");
@@ -27,6 +28,29 @@ export default function QuizScreen({ setQuizState, quizMode }) {
       return response.data;
     } catch (error) {
       console.error("Error fetching data from backend:", error);
+    }
+  };
+
+  const getImages = async () => {
+    const jwt_authorization = cookies.get("jwt_authorization");
+    const auth_header = "Bearer " + jwt_authorization;
+    for (const item of quizData) {
+      try {
+        const response = await axios({
+          method: "GET",
+          url: `http://127.0.0.1:5000/img/${item.image_name}.jpg`,
+          headers: {
+            Authorization: auth_header,
+          },
+        });
+        setImages((prevImages) => ({
+          ...prevImages,
+          [item.image_name]: response.data,
+        }));
+      } catch (error) {
+        console.error("Error fetching image from backend:", error);
+      }
+      console.log(response.data);
     }
   };
 
@@ -69,6 +93,9 @@ export default function QuizScreen({ setQuizState, quizMode }) {
         <div>
           {quizData[currentQuestionIndex].category == "Capital" && (
             <div>
+              <img
+                src={`http://127.0.0.1:5000/img/${quizData[currentQuestionIndex].img_url}.jpg`}
+              />
               What is the capital of{" "}
               {quizData[currentQuestionIndex].country_name}?
               {answers.map((answer, index) => (
