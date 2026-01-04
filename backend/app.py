@@ -74,6 +74,11 @@ def create_account():
     username = data["username"]
     password = data["password"]
 
+    userExists = session.query(User).filter_by(username=username).one_or_none()
+
+    if userExists:
+        return jsonify({'Error': 'Username already in use'}), 400
+
     password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
     user = User(username=username, password_hash=password_hash, exp=0, level=1, exp_to_next_level=100)
@@ -82,7 +87,7 @@ def create_account():
 
     session.commit()
 
-    return {"bruh": "bruh"}
+    return jsonify({'Success':'Account created successfully'}), 200
 
 
 @app.post("/login")
@@ -97,9 +102,9 @@ def create_token():
         login_successful = bcrypt.checkpw(password.encode('utf-8'), user.password_hash)
         if login_successful:
             token = create_access_token(identity=username)
-            return {"token": token}
+            return jsonify({'token': token}), 200
 
-    return {"Error": "Incorrect username or password"}
+    return jsonify({'Error':'Incorrect username or password'}), 400
    
 
 @app.post("/test")

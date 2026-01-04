@@ -23,7 +23,7 @@ function Login() {
       cookies.set("jwt_authorization", response.data["token"]);
       return response.data;
     } catch (error) {
-      console.error("Error logging in", error);
+      window.alert("Incorrect username or password.");
     }
   };
 
@@ -40,7 +40,7 @@ function Login() {
       });
       return response.data;
     } catch (error) {
-      console.error("Error signing up", error);
+      window.alert("Username already in use.");
     }
   };
 
