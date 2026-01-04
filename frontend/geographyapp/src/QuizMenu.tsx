@@ -6,7 +6,7 @@ export default function QuizMenu({ setQuizState, setQuizMode }) {
       <button
         onClick={() => {
           setQuizState(1);
-          setQuizMode("learn");
+          setQuizMode("new");
         }}
       >
         Learn
@@ -14,7 +14,7 @@ export default function QuizMenu({ setQuizState, setQuizMode }) {
       <button
         onClick={() => {
           setQuizState(1);
-          setQuizMode("review");
+          setQuizMode("known");
         }}
       >
         Review

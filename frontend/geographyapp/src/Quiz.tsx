@@ -1,14 +1,12 @@
-import React from "react";
+import { useState } from "react";
 import QuizMenu from "./QuizMenu";
 import QuizScreen from "./QuizScreen";
 import QuizResults from "./QuizResults";
 
-export default function Quiz({
-  quizState,
-  setQuizState,
-  quizMode,
-  setQuizMode,
-}) {
+export default function Quiz() {
+  const [quizState, setQuizState] = useState(0); // 0 = menu, 1 = quiz, 2 = results
+  const [quizMode, setQuizMode] = useState("learn"); // "new" or "known"
+
   return (
     <>
       {quizState === 0 && (
