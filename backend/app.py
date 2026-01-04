@@ -86,8 +86,10 @@ def create_account():
     session.add(user)
 
     session.commit()
-
-    return jsonify({'Success':'Account created successfully'}), 200
+    print("token")
+    token = create_access_token(identity=username)
+    print("return")
+    return jsonify({'token': token}), 200
 
 
 @app.post("/login")

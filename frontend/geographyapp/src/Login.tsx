@@ -42,6 +42,8 @@ function Login() {
           password: password,
         },
       });
+      cookies.set("jwt_authorization", response.data["token"]);
+      navigate("/quiz");
       return response.data;
     } catch (error) {
       window.alert("Username already in use.");
