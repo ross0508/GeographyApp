@@ -7,6 +7,8 @@ export default function QuizScreen({ setQuizState, quizMode }) {
 
   const [dataGotten, setDataGotten] = useState(false);
   const [quizData, setQuizData] = useState(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState([]);
 
   const getQuizData = async () => {
     const jwt_authorization = cookies.get("jwt_authorization");
@@ -21,6 +23,7 @@ export default function QuizScreen({ setQuizState, quizMode }) {
       });
       setQuizData(response.data);
       setDataGotten(true);
+      console.log(response.data);
       return response.data;
     } catch (error) {
       console.error("Error fetching data from backend:", error);
@@ -31,8 +34,52 @@ export default function QuizScreen({ setQuizState, quizMode }) {
     if (!dataGotten) {
       getQuizData();
     }
-    console.log(quizData);
   }, [dataGotten]);
 
-  return <div>Quiz Started</div>;
+  useEffect(() => {
+    if (dataGotten === false) {
+      return;
+    }
+    if (currentQuestionIndex >= quizData.length - 1) {
+      setQuizState(2);
+    }
+    const correctAnswer = quizData[currentQuestionIndex].answer;
+    const wrongAnswers = quizData
+      .filter((_, index) => index !== currentQuestionIndex)
+      .map((item) => item.answer);
+    const shuffledAnswers = [
+      correctAnswer,
+      ...wrongAnswers.sort(() => 0.5 - Math.random()).slice(0, 3),
+    ].sort(() => 0.5 - Math.random());
+    setAnswers(shuffledAnswers);
+  }, [currentQuestionIndex, dataGotten]);
+
+  const handleAnswer = (selectedAnswer) => {
+    const correctAnswer = quizData[currentQuestionIndex].answer;
+    if (selectedAnswer === correctAnswer) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
+      window.alert("Incorrect");
+    }
+  };
+
+  return (
+    <div>
+      {dataGotten && (
+        <div>
+          {quizData[currentQuestionIndex].category == "Capital" && (
+            <div>
+              What is the capital of{" "}
+              {quizData[currentQuestionIndex].country_name}?
+              {answers.map((answer, index) => (
+                <button key={index} onClick={() => handleAnswer(answer)}>
+                  {answer}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
