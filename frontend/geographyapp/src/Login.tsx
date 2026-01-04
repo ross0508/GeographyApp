@@ -2,9 +2,12 @@ import { useState } from "react";
 import "./App.css";
 import axios from "axios";
 import Cookies from "universal-cookie";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const cookies = new Cookies();
+
+  const navigate = useNavigate();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -21,6 +24,7 @@ function Login() {
         },
       });
       cookies.set("jwt_authorization", response.data["token"]);
+      navigate("/quiz");
       return response.data;
     } catch (error) {
       window.alert("Incorrect username or password.");
