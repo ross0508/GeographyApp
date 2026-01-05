@@ -31,7 +31,7 @@ export default function AddFriend() {
               onClick={() => sendFriendRequest()}
               className="login-button"
             >
-              Register
+              Add
             </button>
           </form>
         </div>
