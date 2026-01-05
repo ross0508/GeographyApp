@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, send_from_directory
-from sqlalchemy import Column, Integer, Table, Column, MetaData, String, Double, ForeignKey, LargeBinary, func
+from sqlalchemy import Column, Integer, Table, Column, MetaData, String, Double, ForeignKey, LargeBinary, func, or_, and_
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from engine import engine
 import json
@@ -233,10 +233,20 @@ def getKnownFacts(length):
 @jwt_required()
 def createFriendRequest(friendname):
     username = get_jwt_identity()
+    
+    if username == friendname:
+        return {"Error": "Can't send friend request to self"}, 500
+    
     user = session.query(User).filter_by(username=username).one_or_none()
+
 
     friend = session.query(User).filter_by(username=friendname).one_or_none()
     
+    already_exists = session.query(FriendRequest).filter_by(sender=user.user_id, reciever=friend.user_id)
+    
+    if already_exists:
+        return {"Error": "Already sent"}, 500
+
     friendRequest = FriendRequest(sender=user.user_id, reciever=friend.user_id)
 
     session.add(friendRequest)
@@ -268,9 +278,25 @@ def respondFriendRequest(request_id):
 
 
     if accept:
-        friendship = Friend(user1=friendRequest.sender, user2=friendRequest.reciever)
+        already_exists = session.query(Friend).filter(
+        or_(
+            and_(
+                Friend.user1 == friendRequest.sender,
+                Friend.user2 == friendRequest.reciever
+            ),
+            and_(
+                Friend.user1 == friendRequest.reciever,
+                Friend.user2 == friendRequest.sender
+            )
+        )
+    ).first()
 
-    session.add(friendship)
+        if already_exists:
+            return {"Error": "Already Friends"}, 500
+
+        friendship = Friend(user1=friendRequest.sender, user2=friendRequest.reciever)
+        session.add(friendship)
+
     session.delete(friendRequest)
     session.commit()
 
