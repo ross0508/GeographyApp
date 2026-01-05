@@ -202,5 +202,5 @@ def getKnownFacts(length):
 
 
 @app.route('/img/<filename>')
-def uploaded_file(filename):
+def getImage(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)

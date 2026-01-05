@@ -9,7 +9,6 @@ export default function QuizScreen({ setQuizState, quizMode }) {
   const [quizData, setQuizData] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
-  const [images, setImages] = useState({});
 
   const getQuizData = async () => {
     const jwt_authorization = cookies.get("jwt_authorization");
@@ -24,33 +23,9 @@ export default function QuizScreen({ setQuizState, quizMode }) {
       });
       setQuizData(response.data);
       setDataGotten(true);
-      console.log(response.data);
       return response.data;
     } catch (error) {
       console.error("Error fetching data from backend:", error);
-    }
-  };
-
-  const getImages = async () => {
-    const jwt_authorization = cookies.get("jwt_authorization");
-    const auth_header = "Bearer " + jwt_authorization;
-    for (const item of quizData) {
-      try {
-        const response = await axios({
-          method: "GET",
-          url: `http://127.0.0.1:5000/img/${item.image_name}.jpg`,
-          headers: {
-            Authorization: auth_header,
-          },
-        });
-        setImages((prevImages) => ({
-          ...prevImages,
-          [item.image_name]: response.data,
-        }));
-      } catch (error) {
-        console.error("Error fetching image from backend:", error);
-      }
-      console.log(response.data);
     }
   };
 
@@ -59,6 +34,23 @@ export default function QuizScreen({ setQuizState, quizMode }) {
       getQuizData();
     }
   }, [dataGotten]);
+
+  const handleAddExp = async () => {
+    const jwt_authorization = cookies.get("jwt_authorization");
+    const auth_header = "Bearer " + jwt_authorization;
+    try {
+      const response = await axios({
+        method: "GET",
+        url: `http://127.0.0.1:5000/facts/${quizMode}/10`,
+        headers: {
+          Authorization: auth_header,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching data from backend:", error);
+    }
+  };
 
   useEffect(() => {
     if (dataGotten === false) {
@@ -78,10 +70,15 @@ export default function QuizScreen({ setQuizState, quizMode }) {
     setAnswers(shuffledAnswers);
   }, [currentQuestionIndex, dataGotten]);
 
-  const handleAnswer = (selectedAnswer) => {
+  const handleAnswer = async (selectedAnswer) => {
+    const jwt_authorization = cookies.get("jwt_authorization");
+    const auth_header = "Bearer " + jwt_authorization;
+
     const correctAnswer = quizData[currentQuestionIndex].answer;
+
     if (selectedAnswer === correctAnswer) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+      handleAddExp();
     } else {
       window.alert("Incorrect");
     }
