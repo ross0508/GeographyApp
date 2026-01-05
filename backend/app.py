@@ -246,7 +246,7 @@ def createFriendRequest(friendname):
     return jsonify({"Success": "Friend Request Sent"}), 200
 
 
-@app.route('/friends/requests')
+@app.get('/friends/requests')
 @jwt_required()
 def getFriendRequests():
     username = get_jwt_identity()
@@ -257,6 +257,25 @@ def getFriendRequests():
     request_list = [{"request_id": request.request_id, "sender": request.sender, "reciever": request.reciever} for request in requests]
 
     return jsonify(request_list)
+
+
+@app.put('/friends/requests/<request_id>')
+@jwt_required()
+def respondFriendRequest(request_id):
+    accept = request.json.get("accept")
+
+    friendRequest = session.query(FriendRequest).filter_by(request_id=request_id).one_or_none()
+
+
+    if accept:
+        friendship = Friend(user1=friendRequest.sender, user2=friendRequest.reciever)
+
+    session.add(friendship)
+    session.delete(friendRequest)
+    session.commit()
+
+    return {"Success": "Responded successfully"}, 200
+
 
 @app.route('/img/<filename>')
 def getImage(filename):
