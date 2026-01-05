@@ -51,6 +51,13 @@ class User(Base):
     
     facts = relationship('Fact', secondary='user_fact', back_populates='users')
 
+    friends = relationship('Friend', foreign_keys="Friend.user1", back_populates='user1_friend', cascade="all, delete-orphan")
+    friends2 = relationship('Friend', foreign_keys="Friend.user2", back_populates='user2_friend', cascade="all, delete-orphan")
+
+    sent_requests = relationship('FriendRequest', foreign_keys="FriendRequest.sender", back_populates='sender_user')
+    received_requests = relationship('FriendRequest', foreign_keys="FriendRequest.reciever", back_populates='receiver_user')
+
+
 class Fact(Base):
     __tablename__ = 'facts'
 
@@ -63,6 +70,27 @@ class Fact(Base):
     difficulty = Column(Integer)
 
     users = relationship('User', secondary="user_fact", back_populates="facts")
+
+class Friend(Base):
+    __tablename__ = 'friends'
+
+    id = Column(Integer, primary_key=True)
+    user1 = Column(Integer, ForeignKey('users.user_id'))
+    user2 = Column(Integer, ForeignKey('users.user_id'))
+
+    user1_friend = relationship('User', foreign_keys=[user1], back_populates='friends')
+    user2_friend = relationship('User', foreign_keys=[user2], back_populates='friends2')
+
+class FriendRequest(Base):
+    __tablename__ = 'friend_requests'
+
+    request_id = Column(Integer, primary_key=True)
+    sender = Column(Integer, ForeignKey('users.user_id'))
+    reciever = Column(Integer, ForeignKey('users.user_id'))
+
+    sender_user = relationship('User', foreign_keys="FriendRequest.sender", back_populates='sent_requests')
+    receiver_user = relationship('User', foreign_keys="FriendRequest.reciever", back_populates='received_requests')
+
 
 
 Base.metadata.create_all(engine)
@@ -201,6 +229,37 @@ def getKnownFacts(length):
     return jsonify(facts_list)
 
 
+@app.post("/friends/requests/<friendname>")
+@jwt_required()
+def createFriendRequest(friendname):
+    username = get_jwt_identity()
+    user = session.query(User).filter_by(username=username).one_or_none()
+
+    friend = session.query(User).filter_by(username=friendname).one_or_none()
+    
+    friendRequest = FriendRequest(sender=user.user_id, reciever=friend.user_id)
+
+    session.add(friendRequest)
+
+    session.commit()
+
+    return jsonify({"Success": "Friend Request Sent"}), 200
+
+
+@app.route('/friends/requests')
+@jwt_required()
+def getFriendRequests():
+    username = get_jwt_identity()
+    user = session.query(User).filter_by(username=username).one_or_none()
+
+    requests = user.received_requests
+
+    request_list = [{"request_id": request.request_id, "sender": request.sender, "reciever": request.reciever} for request in requests]
+
+    return jsonify(request_list)
+
 @app.route('/img/<filename>')
 def getImage(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+
