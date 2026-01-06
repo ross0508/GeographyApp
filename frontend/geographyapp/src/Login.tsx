@@ -50,28 +50,6 @@ function Login() {
     }
   };
 
-  const testRequest = async () => {
-    event.preventDefault();
-    const jwt_authorization = cookies.get("jwt_authorization");
-    const auth_header = "Bearer " + jwt_authorization;
-    try {
-      const response = await axios({
-        method: "POST",
-        url: `http://localhost:5000/test`,
-        headers: {
-          Authorization: auth_header,
-        },
-        data: {
-          username: username,
-          password: password,
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Error signing up", error);
-    }
-  };
-
   return (
     <>
       <div className="card">
@@ -103,7 +81,6 @@ function Login() {
           <button onClick={() => handleRegister()} className="login-button">
             Register
           </button>
-          <button onClick={() => testRequest()}>Test Request</button>
         </form>
       </div>
     </>

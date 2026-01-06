@@ -1,11 +1,31 @@
+import axios from "axios";
 import React from "react";
+import Cookies from "universal-cookie";
 
 export default function AddFriend() {
+  const cookies = new Cookies();
+
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [friendName, setFriendName] = React.useState("");
 
   const sendFriendRequest = async () => {
-    event?.preventDefault();
+    event.preventDefault();
+    const jwt_authorization = cookies.get("jwt_authorization");
+    const auth_header = "Bearer " + jwt_authorization;
+    try {
+      const response = await axios({
+        method: "POST",
+        url: `http://127.0.0.1:5000/friends/requests/${friendName}`,
+        headers: {
+          Authorization: auth_header,
+        },
+      });
+      setFriendName("");
+      setMenuOpen(false);
+      return response.data;
+    } catch (error) {
+      console.error("Error sending friend request:", error);
+    }
   };
 
   return (

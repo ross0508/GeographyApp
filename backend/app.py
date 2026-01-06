@@ -235,17 +235,22 @@ def createFriendRequest(friendname):
     username = get_jwt_identity()
     
     if username == friendname:
-        return {"Error": "Can't send friend request to self"}, 500
+        print("send to self")
+        return {"Error": "Can't send friend request to self"}, 400
     
     user = session.query(User).filter_by(username=username).one_or_none()
 
 
     friend = session.query(User).filter_by(username=friendname).one_or_none()
+
+    if not friend:
+        return {"Error": "User does not exist"}, 400
     
-    already_exists = session.query(FriendRequest).filter_by(sender=user.user_id, reciever=friend.user_id)
+    already_exists = session.query(FriendRequest).filter_by(sender=user.user_id, reciever=friend.user_id).one_or_none()
     
     if already_exists:
-        return {"Error": "Already sent"}, 500
+        print("already sent")
+        return {"Error": "Already sent"}, 400
 
     friendRequest = FriendRequest(sender=user.user_id, reciever=friend.user_id)
 
@@ -292,7 +297,7 @@ def respondFriendRequest(request_id):
     ).first()
 
         if already_exists:
-            return {"Error": "Already Friends"}, 500
+            return {"Error": "Already Friends"}, 400
 
         friendship = Friend(user1=friendRequest.sender, user2=friendRequest.reciever)
         session.add(friendship)
