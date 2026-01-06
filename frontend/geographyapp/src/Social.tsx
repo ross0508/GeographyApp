@@ -3,7 +3,6 @@ import AddFriend from "./AddFriend";
 import NavBar from "./Navbar";
 import Cookies from "universal-cookie";
 import axios from "axios";
-import { data } from "react-router-dom";
 
 export default function Social() {
   const cookies = new Cookies();
@@ -27,7 +26,30 @@ export default function Social() {
       setDataGotten(true);
       return response.data;
     } catch (error) {
-      console.error("Error fetching data from backend:", error);
+      console.error("Error fetching data from backend:", error.response);
+    }
+  };
+
+  const respondFriendRequest = async (accept, request_id) => {
+    setFriendRequests((prevRequests) =>
+      prevRequests.filter((req) => req.request_id !== request_id)
+    );
+    const jwt_authorization = cookies.get("jwt_authorization");
+    const auth_header = "Bearer " + jwt_authorization;
+    try {
+      const response = await axios({
+        method: "PUT",
+        url: `http://127.0.0.1:5000/friends/requests/${request_id}`,
+        headers: {
+          Authorization: auth_header,
+        },
+        data: {
+          accept: accept,
+        },
+      });
+      console.log("Friend request response:", response.data);
+    } catch (error) {
+      console.error("Error responding to friend request:", error.response);
     }
   };
 
@@ -50,7 +72,21 @@ export default function Social() {
           <h3>Pending Friend Requests:</h3>
           <ul>
             {friendRequests.map((request, index) => (
-              <li key={index}>{request.sender}</li>
+              <div key={index}>
+                <li>{request.sender_name}</li>
+                <button
+                  onClick={() => respondFriendRequest(true, request.request_id)}
+                >
+                  ✓
+                </button>
+                <button
+                  onClick={() =>
+                    respondFriendRequest(false, request.request_id)
+                  }
+                >
+                  ✗
+                </button>
+              </div>
             ))}
           </ul>
         </div>

@@ -277,7 +277,7 @@ def getFriendRequests():
     for sender in senders:
         id_to_name[sender.user_id] = sender.username
 
-    request_list = [{"request_id": request.request_id, "sender": id_to_name[request.sender], "reciever": request.reciever} for request in requests]
+    request_list = [{"request_id": request.request_id, "sender_name": id_to_name[request.sender], "reciever": request.reciever} for request in requests]
 
     return jsonify(request_list)
 
@@ -289,6 +289,8 @@ def respondFriendRequest(request_id):
 
     friendRequest = session.query(FriendRequest).filter_by(request_id=request_id).one_or_none()
 
+    if not friendRequest:
+        return {"Error": "Friend request does not exist"}, 400
 
     if accept:
         already_exists = session.query(Friend).filter(
