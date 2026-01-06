@@ -269,7 +269,15 @@ def getFriendRequests():
 
     requests = user.received_requests
 
-    request_list = [{"request_id": request.request_id, "sender": request.sender, "reciever": request.reciever} for request in requests]
+    sender_ids = [request.sender for request in requests]
+
+    senders = session.query(User).filter(User.user_id.in_(sender_ids)).all()
+
+    id_to_name = dict()
+    for sender in senders:
+        id_to_name[sender.user_id] = sender.username
+
+    request_list = [{"request_id": request.request_id, "sender": id_to_name[request.sender], "reciever": request.reciever} for request in requests]
 
     return jsonify(request_list)
 
