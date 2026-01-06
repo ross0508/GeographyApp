@@ -318,6 +318,26 @@ def respondFriendRequest(request_id):
     return {"Success": "Responded successfully"}, 200
 
 
+@app.get('/friends')
+@jwt_required()
+def getFriends():
+    username = get_jwt_identity()
+
+    user = session.query(User).filter(User.username == username).one_or_none()
+    
+    if user:
+        all_friends = user.friends + user.friends2
+        
+        friend_usernames = []
+        for friend_relation in all_friends:
+            if friend_relation.user1 == user.user_id:
+                friend_usernames.append(friend_relation.user2_friend.username)
+            else:
+                friend_usernames.append(friend_relation.user1_friend.username)
+
+        return friend_usernames
+
+
 @app.route('/img/<filename>')
 def getImage(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
