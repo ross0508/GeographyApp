@@ -336,7 +336,32 @@ def getFriends():
                 friend_usernames.append(friend_relation.user1_friend.username)
 
         return friend_usernames
+    
 
+@app.delete('/friends/<friend_id>')
+@jwt_required()
+def removeFriend(friend_id):
+    username = get_jwt_identity()
+
+    user = session.query(User).filter_by(username=username).one_or_none()
+
+
+    friendship = session.query(Friend).filter( or_(
+            and_(
+                Friend.user1 == user.user_id,
+                Friend.user2 == friend_id
+            ),
+            and_(
+                Friend.user1 == friend_id,
+                Friend.user2 == user.user_id
+            )
+        )).first()
+    
+    session.delete(friendship)
+
+    session.commit()
+
+    return {"Success": "Friend removed"}
 
 @app.route('/img/<filename>')
 def getImage(filename):
