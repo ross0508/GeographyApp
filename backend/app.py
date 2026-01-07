@@ -146,6 +146,16 @@ def create_token():
 def test():
     return {"bruh": "bruvvvvvv"}
 
+@app.get("/users")
+@jwt_required()
+def getUser():
+    username = get_jwt_identity()
+    user = session.query(User).filter_by(username=username).one_or_none()
+    
+    user_data = {"user_id": user.user_id, "username": user.username, "exp": user.exp, "exp_to_next_level": user.exp_to_next_level}
+
+    return user_data
+
 @app.put("/users/exp")
 @jwt_required()
 def addExp():
