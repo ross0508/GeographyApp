@@ -118,9 +118,7 @@ def create_account():
     session.add(user)
 
     session.commit()
-    print("token")
     token = create_access_token(identity=username)
-    print("return")
     return jsonify({'token': token}), 200
 
 
@@ -152,7 +150,7 @@ def getUser():
     username = get_jwt_identity()
     user = session.query(User).filter_by(username=username).one_or_none()
     
-    user_data = {"user_id": user.user_id, "username": user.username, "exp": user.exp, "exp_to_next_level": user.exp_to_next_level}
+    user_data = {"user_id": user.user_id, "username": user.username, "level": user.level, "exp": user.exp, "exp_to_next_level": user.exp_to_next_level}
 
     return user_data
 

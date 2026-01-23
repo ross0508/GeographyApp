@@ -5,6 +5,7 @@ import axios from "axios";
 
 export default function Profile() {
   const [username, setUsername] = useState("");
+  const [level, setLevel] = useState(1);
   const [userDataGotten, setUserDataGotten] = useState(false);
 
   const cookies = new Cookies();
@@ -18,7 +19,10 @@ export default function Profile() {
         url: `http://127.0.0.1:5000/users`,
         headers: { Authorization: auth },
       });
+      console.log("User data from backend:", response.data);
       setUsername(response.data["username"]);
+      setLevel(response.data["level"]);
+      setUserDataGotten(true);
     } catch (error) {
       console.log("Error fetching user data from backend:", error.response);
     }
@@ -31,9 +35,14 @@ export default function Profile() {
   }, [userDataGotten]);
 
   return (
-    <div>
-      <NavBar></NavBar>
-      <h1>Username: {username}</h1>
-    </div>
+    <>
+      {userDataGotten && (
+        <div>
+          <NavBar></NavBar>
+          <h1>Username: {username}</h1>
+          <h1>Level: {level}</h1>
+        </div>
+      )}
+    </>
   );
 }
